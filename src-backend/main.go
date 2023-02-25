@@ -2,50 +2,34 @@ package main
 
 import (
 	"embed"
+	"flag"
 	"io/fs"
 	"log"
-	"net/http"
-	"os"
 
 	"github.com/labstack/echo/v4"
 )
 
+var cliMode = flag.String("mode", "prod", "launch in dev or prod")
+
 //go:embed dist
 var embededFiles embed.FS
 
-func getFileSystem(useOS bool) http.FileSystem {
-	if useOS {
-		log.Print("using live mode")
-		return http.FS(os.DirFS("dist"))
-	}
-
-	log.Print("using embed mode")
-	fsys, err := fs.Sub(embededFiles, "dist")
-	if err != nil {
-		panic(err)
-	}
-
-	return http.FS(fsys)
-}
-
 func main() {
 	e := echo.New()
-	useOS := len(os.Args) > 1 && os.Args[1] == "live"
 
-	if useOS {
+	flag.Parse()
+
+	if *cliMode == "dev" {
+		log.Println("launch in development")
 		e.Static("/", "dev-template.html")
 	} else {
+		log.Println("launch in production")
 		fsys, err := fs.Sub(embededFiles, "dist")
 		if err != nil {
 			panic(err)
 		}
-		assetHandler := http.FileServer(http.FS(fsys))
-		e.GET("/", echo.WrapHandler(assetHandler))
-		e.GET("/assets/*", echo.WrapHandler(assetHandler))
-	}
+		e.StaticFS("/", fsys)
 
-	// assetHandler := http.FileServer(getFileSystem(useOS))
-	// e.GET("/", echo.WrapHandler(assetHandler))
-	// e.GET("/assets/*", echo.WrapHandler(assetHandler))
+	}
 	e.Logger.Fatal(e.Start("127.0.0.1:1323"))
 }

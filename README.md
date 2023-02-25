@@ -4,7 +4,7 @@ A simple example for Vite backend integration with Go Echo.
 
 ## dev
 
-`pnpm run dev` then `cd src-backend && go run . live` , try to edit `src/App.tsx` and check hot reload on `127.0.0.1:1323`
+`pnpm run dev` then `cd src-backend && go run . -mode dev` , try to edit `src/App.tsx` and check hot reload on `127.0.0.1:1323`
 
 ## prod
 
